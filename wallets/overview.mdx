@@ -1,0 +1,63 @@
+---
+title: "Wallets as a Service"
+description: "Receive stablecoins, hold a USD balance, and pay out to whitelisted recipients."
+---
+
+Wallets as a Service (WAAS) lets you receive stablecoins, hold a USD balance, and pay out — without running wallet infrastructure or touching private keys.
+
+You create deposit addresses on supported chains. Confirmed deposits credit your merchant USD balance. To move money out, you quote a transfer and initiate a payout to a recipient you've whitelisted.
+
+<CardGroup cols={2}>
+  <Card title="Core concepts" icon="diagram-project" href="/wallets/concepts">
+    Addresses, balance, recipients, and transfers.
+  </Card>
+  <Card title="Create an address" icon="wallet" href="/wallets/guides/create-an-address">
+    Provision your first deposit address.
+  </Card>
+</CardGroup>
+
+## What you can do
+
+<Columns cols={2}>
+  <Card title="Create deposit addresses" icon="plus">
+    Generate receive addresses on supported chains, on demand.
+  </Card>
+  <Card title="Receive stablecoins" icon="arrow-down-to-bracket">
+    Accept USDC and USDT; confirmed deposits credit your USD balance.
+  </Card>
+  <Card title="Whitelist recipients" icon="shield-check">
+    Approve bank accounts and crypto addresses in the dashboard.
+  </Card>
+  <Card title="Quote and pay out" icon="paper-plane">
+    Lock a rate and fee, then initiate a transfer.
+  </Card>
+</Columns>
+
+## How it works
+
+<Steps>
+  <Step title="Create a deposit address">
+    Call the API to provision an address on a supported chain. Yara manages the keys.
+  </Step>
+  <Step title="Receive funds">
+    Stablecoins sent to the address are confirmed and credited to your merchant USD balance. Your app is notified by webhook.
+  </Step>
+  <Step title="Whitelist a recipient">
+    Add and approve the payout bank account or crypto address in the dashboard.
+  </Step>
+  <Step title="Quote, then transfer">
+    Quote a payout to the recipient, then initiate the transfer from that quote.
+  </Step>
+</Steps>
+
+## Supported chains and assets
+
+WAAS supports leading stablecoins across major networks. Fetch the live list from [`GET /v1/chains`](/wallets/api-reference/overview).
+
+| Assets | Chains |
+| --- | --- |
+| USDC, USDT | Base, Ethereum, Polygon, Solana, Arbitrum, Optimism, Celo, BSC, Tron |
+
+<Note>
+  Deposit and transfer availability can differ per chain. The `chains` endpoint returns `deposit_enabled` and `transfer_enabled` flags so you always know what's live.
+</Note>

@@ -1,0 +1,50 @@
+---
+title: "Whitelist a recipient"
+description: "Approve a payout destination in the dashboard before sending funds."
+---
+
+Funds can only leave to a destination you've **whitelisted**. You manage recipients in the [dashboard](https://dashboard.yara.cash) — keeping payout approval separate from your application code.
+
+This is the control that lets you safely move the stablecoins you receive out to destinations you trust.
+
+## Add a recipient
+
+<Steps>
+  <Step title="Open Whitelisted Accounts">
+    In the dashboard, go to **Whitelisted Accounts** and click **Add account**.
+  </Step>
+  <Step title="Choose a type">
+    Pick **Crypto address** to pay out on-chain, or **Bank account** for fiat payouts.
+  </Step>
+  <Step title="Enter the details">
+    For a crypto address, provide a **label**, the **wallet address**, the **asset** (USDC/USDT), and the **chain**. For a bank account, provide the account details and **currency** (e.g. NGN, GHS, USD).
+  </Step>
+  <Step title="Save and wait for approval">
+    The recipient is created as **Pending** while it's reviewed, then becomes **Active**. You can only pay out to **Active** recipients.
+  </Step>
+</Steps>
+
+## Statuses
+
+| Status | Meaning |
+| --- | --- |
+| `PENDING` | Awaiting review. Payouts are not yet allowed. |
+| `ACTIVE` | Approved and ready to receive payouts. |
+
+<Note>
+  Destination coordinates (address, account number) are immutable once created — you can rename the label, but to change where funds go, add a new recipient.
+</Note>
+
+## Use it in a transfer
+
+Each recipient has an `id` (for example `3bf24579-a35a-4ba9-a936-5df9c1d809f9`). You reference it as the `recipient_id` when you [quote a transfer](/wallets/guides/make-a-transfer).
+
+<Warning>
+  Double-check the destination before approving. On-chain transfers are irreversible, and whitelisting is the last human checkpoint before funds can move.
+</Warning>
+
+## Next
+
+<Card title="Make a transfer" icon="paper-plane" href="/wallets/guides/make-a-transfer" horizontal>
+  Quote and pay out to your whitelisted recipient.
+</Card>

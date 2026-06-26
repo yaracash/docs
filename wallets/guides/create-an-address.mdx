@@ -1,0 +1,73 @@
+---
+title: "Create a deposit address"
+description: "Provision an on-chain address to receive stablecoins."
+---
+
+Create a deposit address whenever you need a place to receive stablecoins on a supported chain. Store the returned `id` — it's the stable identifier you'll use to look the address up later.
+
+## Create the address
+
+Send a `POST` to `/v1/addresses` with the chain you want. A `POST` requires an `X-Idempotency-Key`.
+
+```bash
+curl https://api.yara.cash/v1/addresses \
+  --request POST \
+  --header "X-API-Key: $YARA_API_KEY" \
+  --header "X-Idempotency-Key: $(uuidgen)" \
+  --header "Content-Type: application/json" \
+  --data '{ "chain": "BASE" }'
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "7f7c6713-3fdc-43fb-a9e7-d3c364e7c763",
+    "chain": "BASE",
+    "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+    "status": "ACTIVE",
+    "merchant_id": "8fca3c8d-5d48-4f4d-a286-2ef6d1cd2f01"
+  }
+}
+```
+
+## Which chains can I use?
+
+Fetch the live list from [`GET /v1/chains`](/wallets/api-reference/overview). Each entry tells you the supported `assets` and whether `deposit_enabled` is `true`.
+
+```bash
+curl https://api.yara.cash/v1/chains \
+  --header "X-API-Key: $YARA_API_KEY"
+```
+
+## List and fetch addresses
+
+List your addresses, optionally filtering by `chain` or `status`:
+
+```bash
+curl "https://api.yara.cash/v1/addresses?chain=BASE&limit=50" \
+  --header "X-API-Key: $YARA_API_KEY"
+```
+
+Or fetch a single address by its `id`:
+
+```bash
+curl https://api.yara.cash/v1/addresses/7f7c6713-3fdc-43fb-a9e7-d3c364e7c763 \
+  --header "X-API-Key: $YARA_API_KEY"
+```
+
+<Tip>
+  Reuse the same idempotency key when retrying a failed create so you don't end up with duplicate addresses.
+</Tip>
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Receive funds" icon="arrow-down-to-bracket" href="/wallets/guides/receive-funds">
+    Get notified when deposits land.
+  </Card>
+  <Card title="Whitelist a recipient" icon="shield-check" href="/wallets/guides/whitelist-an-address">
+    Approve a destination before paying out.
+  </Card>
+</CardGroup>

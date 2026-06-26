@@ -1,0 +1,61 @@
+---
+title: "API reference"
+description: "The WAAS endpoints for addresses, balance, transfers, and more."
+---
+
+The Wallets as a Service API is organized around a few resources. Every endpoint in the left nav has full request and response schemas and a **Try it** console.
+
+## Base URL
+
+```
+https://api.yara.cash
+```
+
+All merchant endpoints are under the `/v1` prefix.
+
+## Authentication
+
+Send your secret key in the `X-API-Key` header (or `Authorization: ApiKey <key>`). See [Authentication](/get-started/authentication).
+
+```bash
+curl https://api.yara.cash/v1/balance \
+  --header "X-API-Key: $YARA_API_KEY"
+```
+
+## Resources
+
+Use the left navigation to open any endpoint. Each resource also has a guide:
+
+<CardGroup cols={2}>
+  <Card title="Addresses" icon="qrcode" href="/wallets/guides/create-an-address">
+    Create and list deposit addresses.
+  </Card>
+  <Card title="Balance & deposits" icon="scale-balanced" href="/wallets/guides/receive-funds">
+    Read your USD balance and track deposits.
+  </Card>
+  <Card title="Transfers" icon="paper-plane" href="/wallets/guides/make-a-transfer">
+    Quote and initiate payouts.
+  </Card>
+  <Card title="Webhooks" icon="bolt" href="/wallets/guides/webhooks">
+    Outbound events and delivery history.
+  </Card>
+</CardGroup>
+
+The reference also covers **Transactions** (a unified feed of deposits and transfers) and **Reference data** (`chains`, `rates`, `fees`) — open them from the left nav.
+
+## Conventions
+
+- **Auth** via the `X-API-Key` header on every merchant request.
+- **Idempotency** via the `X-Idempotency-Key` header on all `POST` requests.
+- **Responses** wrap a single object in `data`, and lists in `data` plus a `meta` block for pagination (`page`, `limit`, `total`, `total_pages`).
+- **Amounts** are decimal strings (e.g. `"100.000000"`).
+- **Errors** return an `error` object with a `code` and `message`.
+
+## Pagination
+
+List endpoints accept `page` and `limit` (default `50`, max `200`) query parameters.
+
+```bash
+curl "https://api.yara.cash/v1/deposits?page=1&limit=50" \
+  --header "X-API-Key: $YARA_API_KEY"
+```

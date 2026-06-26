@@ -1,0 +1,43 @@
+---
+title: "Environments"
+description: "Test safely in sandbox, then go live in production."
+---
+
+Yara provides two environments. Each has its own API keys, and keys are scoped to a single environment.
+
+<Columns cols={2}>
+  <Card title="Sandbox" icon="flask">
+    A safe place to build and test. No real money moves. Use a sandbox API key.
+  </Card>
+  <Card title="Production" icon="rocket">
+    Live environment that moves real money. Use a production API key.
+  </Card>
+</Columns>
+
+## Base URL
+
+Both environments share the same base URL. The environment is determined by the API key you use.
+
+```
+https://api.yara.cash/v1
+```
+
+## Moving to production
+
+When you're ready to go live:
+
+<Steps>
+  <Step title="Generate a live key">
+    Switch to production in the [dashboard](https://dashboard.yara.cash) and create a production API key.
+  </Step>
+  <Step title="Swap your key">
+    Replace your sandbox key with the live key in your server configuration. No code changes needed.
+  </Step>
+  <Step title="Verify the basics">
+    Confirm your webhook endpoints are reachable and your whitelisted destinations are set up for production.
+  </Step>
+</Steps>
+
+<Warning>
+  Sandbox and production data are fully separate. Wallets, whitelisted addresses, and webhooks created in one environment do not carry over to the other.
+</Warning>

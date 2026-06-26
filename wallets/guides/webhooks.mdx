@@ -1,0 +1,80 @@
+---
+title: "Webhooks"
+description: "Get real-time notifications for deposits and transfers."
+---
+
+Webhooks push real-time events to your server so you don't have to poll. Use them to react to deposits and transfers as they happen.
+
+## Add an endpoint
+
+<Steps>
+  <Step title="Open Webhooks">
+    In the [dashboard](https://dashboard.yara.cash), go to **Webhooks** and click **Add endpoint**.
+  </Step>
+  <Step title="Set your URL">
+    Enter an HTTPS URL on your server that can receive `POST` requests.
+  </Step>
+  <Step title="Choose events">
+    Subscribe to the events you care about. You can change these any time.
+  </Step>
+</Steps>
+
+## Events
+
+| Event | Fires when |
+| --- | --- |
+| `deposit.confirmed` | A deposit is confirmed and credited to your balance. |
+| `deposit.failed` | An incoming deposit could not be processed. |
+| `transfer.completed` | A transfer settles. |
+| `transfer.failed` | A transfer could not be completed. |
+
+## Payload
+
+Every webhook is a JSON `POST` with an event `type` and a `data` object.
+
+```json
+{
+  "type": "deposit.confirmed",
+  "data": {
+    "id": "741eec3c-5596-45b6-a88d-3627a236192f",
+    "asset": "USDC",
+    "chain": "BASE",
+    "amount_usd": "100.000000",
+    "status": "CONFIRMED",
+    "tx_hash": "0x4f5d2d7a2c8a95c3"
+  }
+}
+```
+
+## Verify signatures
+
+Each endpoint has a signing secret (shown as `whsec_…` in the dashboard). Yara signs every delivery so you can confirm it genuinely came from Yara. Verify the signature before trusting a payload, and reject anything that doesn't match. Rotate the secret from the dashboard if you suspect it's been exposed.
+
+## Inspect delivery history
+
+You can review outbound events and their delivery status from the API:
+
+```bash
+curl "https://api.yara.cash/v1/webhook-events?limit=50" \
+  --header "X-API-Key: $YARA_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "d723cab9-1ad4-4d4d-821f-6704d834d575",
+      "type": "deposit.confirmed",
+      "status": "DELIVERED",
+      "created_at": "2026-06-16T03:00:00Z"
+    }
+  ],
+  "meta": { "page": 1, "limit": 50, "total": 1, "total_pages": 1 }
+}
+```
+
+## Best practices
+
+- **Respond fast.** Return a `2xx` quickly and do heavy work asynchronously.
+- **Be idempotent.** The same event may be delivered more than once — de-duplicate on the event `id`.
+- **Retry-friendly.** Failed deliveries are retried; you can review status in the dashboard or via the endpoint above.

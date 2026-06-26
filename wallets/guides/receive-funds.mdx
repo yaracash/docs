@@ -1,0 +1,82 @@
+---
+title: "Receive funds"
+description: "Accept stablecoin deposits and see them credited to your USD balance."
+---
+
+Once an address exists, it can receive stablecoin deposits. Yara watches the chain, confirms incoming funds, credits your merchant USD balance, and notifies you.
+
+## Share the deposit address
+
+Give the address to whoever is paying you, or show it in your app — often as a copyable string and a QR code.
+
+```json
+{
+  "data": {
+    "id": "7f7c6713-3fdc-43fb-a9e7-d3c364e7c763",
+    "chain": "BASE",
+    "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  }
+}
+```
+
+<Warning>
+  An address is specific to its **chain**. Sending funds on a different network can result in lost funds. Always show the chain alongside the address.
+</Warning>
+
+## Get notified on deposit
+
+When a deposit is confirmed, Yara sends a `deposit.confirmed` [webhook](/wallets/guides/webhooks). You can also list deposits directly:
+
+```bash
+curl "https://api.yara.cash/v1/deposits?status=CONFIRMED&limit=50" \
+  --header "X-API-Key: $YARA_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "741eec3c-5596-45b6-a88d-3627a236192f",
+      "asset": "USDC",
+      "chain": "BASE",
+      "amount": "100.000000",
+      "amount_usd": "100.000000",
+      "net_amount_usd": "100.000000",
+      "status": "CONFIRMED",
+      "confirmations": 12,
+      "tx_hash": "0x4f5d2d7a2c8a95c3"
+    }
+  ],
+  "meta": { "page": 1, "limit": 50, "total": 1, "total_pages": 1 }
+}
+```
+
+## Check your balance
+
+Confirmed deposits roll up into your merchant USD balance.
+
+```bash
+curl https://api.yara.cash/v1/balance \
+  --header "X-API-Key: $YARA_API_KEY"
+```
+
+```json
+{
+  "data": {
+    "available": "100.000000",
+    "reserved": "0.000000",
+    "pending_deposits": "25.000000",
+    "currency": "USD"
+  }
+}
+```
+
+<Note>
+  `pending_deposits` are deposits Yara has seen but not yet confirmed. They are **not** part of your spendable `available` balance until they confirm.
+</Note>
+
+## Next
+
+<Card title="Make a transfer" icon="paper-plane" href="/wallets/guides/make-a-transfer" horizontal>
+  Pay out from your balance to a whitelisted recipient.
+</Card>

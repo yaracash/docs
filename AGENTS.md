@@ -14,15 +14,23 @@
 
 ## Terminology
 
-{/* Add product-specific terms and preferred usage */}
-{/* Example: Use "workspace" not "project", "member" not "user" */}
+- The product is **Yara** (always capitalized, never "YARA"). Do not use "Daya" in docs.
+- Products: **Wallets as a Service** (WAAS, available now), **Ramps**, **USD Virtual Accounts**, **Yara Liquidity** (the last three are Coming Soon).
+- Use "wallet", "deposit", "transfer"/"payout", "whitelisted destination", "API key".
+- The external WAAS API authenticates with the `x-yara-api-key` header; base URL `https://api.yara.cash/v1`.
+- Whitelisting payout destinations happens in the **dashboard** (`dashboard.yara.cash`), not the API.
+
+## Brand
+
+- Warm, minimal palette: primary brown `#665656`, ink `#211E1D` / `#1C1A19`, cream `#F8F4EF`.
+- Font: **Instrument Sans** (set in `docs.json` `fonts.family`).
+- Logo + favicon use the Yara "sun/ellipse" mark in `logo/` and `favicon.svg`.
 
 ## Style preferences
 
-{/* Add any project-specific style rules below */}
-
 - Use active voice and second person ("you")
 - Keep sentences concise — one idea per sentence
+- Keep pages short; split long topics into sub-pages rather than one long page
 - Use sentence case for headings
 - Bold for UI elements: Click **Settings**
 - Code formatting for file names, commands, paths, and code references

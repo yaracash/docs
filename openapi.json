@@ -1,0 +1,1678 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "contact": {
+            "email": "support@yara.cash",
+            "name": "Yara API Support"
+        },
+        "description": "Merchant-facing wallets/address-as-a-service API for creating merchant receive addresses, inspecting balances, quoting transfers, and initiating payouts to whitelisted recipients.\nPublic endpoints are for external integrators. Dashboard endpoints are gateway-to-environment surfaces protected by the external API gateway. Internal endpoints are platform/system surfaces protected by an internal token.",
+        "license": {
+            "name": "Proprietary"
+        },
+        "title": "Yara External API - Public API",
+        "version": "1.0"
+    },
+    "paths": {
+        "/health": {
+            "get": {
+                "description": "Returns process health.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Health check",
+                "tags": [
+                    "public.health"
+                ]
+            }
+        },
+        "/ready": {
+            "get": {
+                "description": "Returns database readiness.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReadyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReadyResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Readiness check",
+                "tags": [
+                    "public.health"
+                ]
+            }
+        },
+        "/v1/addresses": {
+            "get": {
+                "description": "Lists merchant deposit addresses with optional chain and status filters.",
+                "parameters": [
+                    {
+                        "description": "Chain",
+                        "in": "query",
+                        "name": "chain",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Address status",
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Number of results per page (default: 50, max: 200)",
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
+                    },
+                    {
+                        "description": "Page number (default: 1)",
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AddressListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "List deposit addresses",
+                "tags": [
+                    "public.addresses"
+                ]
+            },
+            "post": {
+                "description": "Creates a receive address for a supported chain. The returned address ID is the stable identifier integrators should store.",
+                "parameters": [
+                    {
+                        "description": "Idempotency key",
+                        "in": "header",
+                        "name": "X-Idempotency-Key",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddressCreateRequest"
+                            }
+                        }
+                    },
+                    "description": "Address creation request",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AddressResponse"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AddressResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Create a deposit address",
+                "tags": [
+                    "public.addresses"
+                ]
+            }
+        },
+        "/v1/addresses/{id}": {
+            "get": {
+                "description": "Returns a single deposit address owned by the authenticated merchant.",
+                "parameters": [
+                    {
+                        "description": "Address ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AddressResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Get a deposit address",
+                "tags": [
+                    "public.addresses"
+                ]
+            }
+        },
+        "/v1/balance": {
+            "get": {
+                "description": "Returns the merchant's USD available and reserved balances from Formance. Pending deposits are unconfirmed deposit records and are not spendable ledger balance.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BalanceResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Get merchant USD balance",
+                "tags": [
+                    "public.balance"
+                ]
+            }
+        },
+        "/v1/chains": {
+            "get": {
+                "description": "Returns chains and asset rails currently understood by the external API.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ChainsResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "List supported chains",
+                "tags": [
+                    "public.chains"
+                ]
+            }
+        },
+        "/v1/deposits": {
+            "get": {
+                "description": "Lists merchant deposit records. Sweeps are intentionally excluded.",
+                "parameters": [
+                    {
+                        "description": "Chain",
+                        "in": "query",
+                        "name": "chain",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Deposit status",
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Transaction hash",
+                        "in": "query",
+                        "name": "tx_hash",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Number of results per page (default: 50, max: 200)",
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
+                    },
+                    {
+                        "description": "Page number (default: 1)",
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DepositListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "List deposits",
+                "tags": [
+                    "public.deposits"
+                ]
+            }
+        },
+        "/v1/deposits/{id}": {
+            "get": {
+                "description": "Returns a single deposit owned by the authenticated merchant.",
+                "parameters": [
+                    {
+                        "description": "Deposit ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DepositResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Get a deposit",
+                "tags": [
+                    "public.deposits"
+                ]
+            }
+        },
+        "/v1/fees": {
+            "get": {
+                "description": "Returns the active merchant fee schedule.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FeeScheduleResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Get active fees",
+                "tags": [
+                    "public.fees"
+                ]
+            }
+        },
+        "/v1/rates": {
+            "get": {
+                "description": "Returns current USD conversion rates and expiry information.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RatesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Get current rates",
+                "tags": [
+                    "public.rates"
+                ]
+            }
+        },
+        "/v1/transactions": {
+            "get": {
+                "description": "Lists deposit and transfer projections for the merchant. Sweeps are not included in this feed.",
+                "parameters": [
+                    {
+                        "description": "Source type",
+                        "in": "query",
+                        "name": "source_type",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "DEPOSIT",
+                                "TRANSFER"
+                            ]
+                        }
+                    },
+                    {
+                        "description": "Transaction status",
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Number of results per page (default: 50, max: 200)",
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
+                    },
+                    {
+                        "description": "Page number (default: 1)",
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TransactionListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "List merchant transactions",
+                "tags": [
+                    "public.transactions"
+                ]
+            }
+        },
+        "/v1/transfers": {
+            "get": {
+                "description": "Lists merchant transfer intents.",
+                "parameters": [
+                    {
+                        "description": "Number of results per page (default: 50, max: 200)",
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
+                    },
+                    {
+                        "description": "Page number (default: 1)",
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TransferListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "List transfers",
+                "tags": [
+                    "public.transfers"
+                ]
+            },
+            "post": {
+                "description": "Creates an async transfer intent from a valid quote and queues processing.",
+                "parameters": [
+                    {
+                        "description": "Idempotency key",
+                        "in": "header",
+                        "name": "X-Idempotency-Key",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransferCreateRequest"
+                            }
+                        }
+                    },
+                    "description": "Transfer creation request",
+                    "required": true
+                },
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TransferResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Initiate a transfer",
+                "tags": [
+                    "public.transfers"
+                ]
+            }
+        },
+        "/v1/transfers/quotes": {
+            "post": {
+                "description": "Quotes a transfer to an already whitelisted recipient.",
+                "parameters": [
+                    {
+                        "description": "Idempotency key",
+                        "in": "header",
+                        "name": "X-Idempotency-Key",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransferQuoteRequest"
+                            }
+                        }
+                    },
+                    "description": "Transfer quote request",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TransferQuoteResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Quote a transfer",
+                "tags": [
+                    "public.transfers"
+                ]
+            }
+        },
+        "/v1/transfers/{id}": {
+            "get": {
+                "description": "Returns a single merchant transfer intent.",
+                "parameters": [
+                    {
+                        "description": "Transfer ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TransferResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Get a transfer",
+                "tags": [
+                    "public.transfers"
+                ]
+            }
+        },
+        "/v1/webhook-events": {
+            "get": {
+                "description": "Lists outbound webhook events and delivery status history for the authenticated merchant.",
+                "parameters": [
+                    {
+                        "description": "Number of results per page (default: 50, max: 200)",
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
+                    },
+                    {
+                        "description": "Page number (default: 1)",
+                        "in": "query",
+                        "name": "page",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookEventListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "List webhook events",
+                "tags": [
+                    "public.webhooks"
+                ]
+            }
+        }
+    },
+    "servers": [
+        {
+            "url": "https://api.yara.cash"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "ApiKeyAuth": {
+                "description": "Public merchant API key. You can also send Authorization: ApiKey <key>.",
+                "in": "header",
+                "name": "X-API-Key",
+                "type": "apiKey"
+            }
+        },
+        "schemas": {
+            "Address": {
+                "properties": {
+                    "address": {
+                        "example": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                        "type": "string"
+                    },
+                    "chain": {
+                        "example": "BASE",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": "7f7c6713-3fdc-43fb-a9e7-d3c364e7c763",
+                        "type": "string"
+                    },
+                    "merchant_id": {
+                        "example": "8fca3c8d-5d48-4f4d-a286-2ef6d1cd2f01",
+                        "type": "string"
+                    },
+                    "status": {
+                        "example": "ACTIVE",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "AddressCreateRequest": {
+                "properties": {
+                    "chain": {
+                        "example": "BASE",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "AddressListResponse": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/Address"
+                        },
+                        "type": "array"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                },
+                "type": "object"
+            },
+            "AddressResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/Address"
+                    }
+                },
+                "type": "object"
+            },
+            "Balance": {
+                "properties": {
+                    "available": {
+                        "example": "1250.500000",
+                        "type": "string"
+                    },
+                    "currency": {
+                        "example": "USD",
+                        "type": "string"
+                    },
+                    "ledger_timestamp": {
+                        "example": "2026-06-16T03:05:00Z",
+                        "type": "string"
+                    },
+                    "pending_deposits": {
+                        "example": "25.000000",
+                        "type": "string"
+                    },
+                    "reserved": {
+                        "example": "100.000000",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "BalanceResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/Balance"
+                    }
+                },
+                "type": "object"
+            },
+            "Chain": {
+                "properties": {
+                    "assets": {
+                        "example": [
+                            "USDC",
+                            "USDT"
+                        ],
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "chain": {
+                        "example": "BASE",
+                        "type": "string"
+                    },
+                    "deposit_enabled": {
+                        "example": true,
+                        "type": "boolean"
+                    },
+                    "transfer_enabled": {
+                        "example": true,
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "ChainsResponse": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/Chain"
+                        },
+                        "type": "array"
+                    }
+                },
+                "type": "object"
+            },
+            "CryptoFee": {
+                "properties": {
+                    "deposit_fee_percentage": {
+                        "example": "0",
+                        "type": "string"
+                    },
+                    "withdrawal_fee": {
+                        "$ref": "#/components/schemas/CryptoWithdrawalFee"
+                    }
+                },
+                "type": "object"
+            },
+            "CryptoWithdrawalFee": {
+                "properties": {
+                    "arbitrum": {
+                        "example": "0.1",
+                        "type": "string"
+                    },
+                    "base": {
+                        "example": "0.1",
+                        "type": "string"
+                    },
+                    "bitcoin": {
+                        "example": "0.1",
+                        "type": "string"
+                    },
+                    "bsc": {
+                        "example": "0.1",
+                        "type": "string"
+                    },
+                    "celo": {
+                        "example": "0.1",
+                        "type": "string"
+                    },
+                    "ethereum": {
+                        "example": "0.5",
+                        "type": "string"
+                    },
+                    "optimism": {
+                        "example": "0.1",
+                        "type": "string"
+                    },
+                    "polygon": {
+                        "example": "0.1",
+                        "type": "string"
+                    },
+                    "solana": {
+                        "example": "0.1",
+                        "type": "string"
+                    },
+                    "tron": {
+                        "example": "0.1",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "Deposit": {
+                "properties": {
+                    "amount": {
+                        "example": "100.000000",
+                        "type": "string"
+                    },
+                    "amount_raw": {
+                        "example": "100000000",
+                        "type": "string"
+                    },
+                    "amount_usd": {
+                        "example": "100.000000",
+                        "type": "string"
+                    },
+                    "asset": {
+                        "example": "USDC",
+                        "type": "string"
+                    },
+                    "chain": {
+                        "example": "BASE",
+                        "type": "string"
+                    },
+                    "confirmations": {
+                        "example": 12,
+                        "type": "integer"
+                    },
+                    "contract_address": {
+                        "example": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "example": "2026-06-16T03:00:00Z",
+                        "type": "string"
+                    },
+                    "deposit_address_id": {
+                        "example": "7f7c6713-3fdc-43fb-a9e7-d3c364e7c763",
+                        "type": "string"
+                    },
+                    "fee_usd": {
+                        "example": "0.000000",
+                        "type": "string"
+                    },
+                    "from_address": {
+                        "example": "0x9a5f8dcb7b0d3f2eb59f20e30aa7d0b93af8abcd",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": "741eec3c-5596-45b6-a88d-3627a236192f",
+                        "type": "string"
+                    },
+                    "merchant_id": {
+                        "example": "8fca3c8d-5d48-4f4d-a286-2ef6d1cd2f01",
+                        "type": "string"
+                    },
+                    "net_amount_usd": {
+                        "example": "100.000000",
+                        "type": "string"
+                    },
+                    "status": {
+                        "example": "CONFIRMED",
+                        "type": "string"
+                    },
+                    "to_address": {
+                        "example": "0x24c3538f4d5302ac58a4c05e7496f4ca4bb551d4",
+                        "type": "string"
+                    },
+                    "tx_hash": {
+                        "example": "0x4f5d2d7a2c8a95c3",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "DepositListResponse": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/Deposit"
+                        },
+                        "type": "array"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                },
+                "type": "object"
+            },
+            "DepositResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/Deposit"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorBody": {
+                "properties": {
+                    "code": {
+                        "example": "validation_error",
+                        "type": "string"
+                    },
+                    "message": {
+                        "example": "invalid JSON body",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorBody"
+                    }
+                },
+                "type": "object"
+            },
+            "FeeSchedule": {
+                "properties": {
+                    "crypto": {
+                        "$ref": "#/components/schemas/CryptoFee"
+                    },
+                    "id": {
+                        "example": "b21df7bd-9b49-44f9-9eea-950536b68f81",
+                        "type": "string"
+                    },
+                    "ngn": {
+                        "$ref": "#/components/schemas/NGNFee"
+                    },
+                    "status": {
+                        "example": "ACTIVE",
+                        "type": "string"
+                    },
+                    "usd_bank": {
+                        "$ref": "#/components/schemas/USDBankFee"
+                    }
+                },
+                "type": "object"
+            },
+            "FeeScheduleResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/FeeSchedule"
+                    }
+                },
+                "type": "object"
+            },
+            "HealthResponse": {
+                "properties": {
+                    "environment": {
+                        "example": "dev",
+                        "type": "string"
+                    },
+                    "service": {
+                        "example": "yara-external-api",
+                        "type": "string"
+                    },
+                    "status": {
+                        "example": "ok",
+                        "type": "string"
+                    },
+                    "time": {
+                        "example": "2026-06-16T03:00:00Z",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "NGNFee": {
+                "properties": {
+                    "deposit_fee_cap": {
+                        "example": "0",
+                        "type": "string"
+                    },
+                    "deposit_fee_percentage": {
+                        "example": "0",
+                        "type": "string"
+                    },
+                    "withdrawal_fee": {
+                        "example": "100",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "PaginationMeta": {
+                "properties": {
+                    "limit": {
+                        "example": 50,
+                        "type": "integer"
+                    },
+                    "page": {
+                        "example": 1,
+                        "type": "integer"
+                    },
+                    "total": {
+                        "example": 42,
+                        "type": "integer"
+                    },
+                    "total_pages": {
+                        "example": 1,
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "Rate": {
+                "properties": {
+                    "expires_at": {
+                        "example": "2026-06-16T03:05:00Z",
+                        "type": "string"
+                    },
+                    "from_currency": {
+                        "example": "USD",
+                        "type": "string"
+                    },
+                    "rate": {
+                        "example": "1500",
+                        "type": "string"
+                    },
+                    "to_currency": {
+                        "example": "NGN",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "RatesResponse": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/Rate"
+                        },
+                        "type": "array"
+                    }
+                },
+                "type": "object"
+            },
+            "ReadyResponse": {
+                "properties": {
+                    "error": {
+                        "example": "database ping failed",
+                        "type": "string"
+                    },
+                    "status": {
+                        "example": "ready",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "Transaction": {
+                "properties": {
+                    "amount_usd": {
+                        "example": "10.050000",
+                        "type": "string"
+                    },
+                    "currency": {
+                        "example": "USD",
+                        "type": "string"
+                    },
+                    "direction": {
+                        "example": "DEBIT",
+                        "type": "string"
+                    },
+                    "fee_usd": {
+                        "example": "0.066667",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": "98bf1b5c-b741-430b-9e4b-5edae2eb7919",
+                        "type": "string"
+                    },
+                    "net_amount_usd": {
+                        "example": "10.000000",
+                        "type": "string"
+                    },
+                    "occurred_at": {
+                        "example": "2026-06-16T03:00:00Z",
+                        "type": "string"
+                    },
+                    "reference": {
+                        "example": "merchant-transfer-001",
+                        "type": "string"
+                    },
+                    "source_id": {
+                        "example": "76179a66-8695-47fd-bca4-310eaa816077",
+                        "type": "string"
+                    },
+                    "source_type": {
+                        "example": "TRANSFER",
+                        "type": "string"
+                    },
+                    "status": {
+                        "example": "RESERVED",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "TransactionListResponse": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/Transaction"
+                        },
+                        "type": "array"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                },
+                "type": "object"
+            },
+            "Transfer": {
+                "properties": {
+                    "created_at": {
+                        "example": "2026-06-16T03:00:00Z",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": "76179a66-8695-47fd-bca4-310eaa816077",
+                        "type": "string"
+                    },
+                    "quote_id": {
+                        "example": "0e0f7b9c-f47b-4f42-b56e-991b8f7a1cb3",
+                        "type": "string"
+                    },
+                    "reference": {
+                        "example": "merchant-transfer-001",
+                        "type": "string"
+                    },
+                    "status": {
+                        "example": "RESERVED",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "TransferCreateRequest": {
+                "properties": {
+                    "quote_id": {
+                        "example": "0e0f7b9c-f47b-4f42-b56e-991b8f7a1cb3",
+                        "type": "string"
+                    },
+                    "reference": {
+                        "example": "merchant-transfer-001",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "TransferListResponse": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/Transfer"
+                        },
+                        "type": "array"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                },
+                "type": "object"
+            },
+            "TransferQuote": {
+                "properties": {
+                    "debit_amount_usd": {
+                        "example": "10.050000",
+                        "type": "string"
+                    },
+                    "destination_rail": {
+                        "example": "BANK_ACCOUNT",
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "example": "2026-06-16T03:05:00Z",
+                        "type": "string"
+                    },
+                    "fee_amount": {
+                        "example": "75",
+                        "type": "string"
+                    },
+                    "gross_amount": {
+                        "example": "15000",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": "0e0f7b9c-f47b-4f42-b56e-991b8f7a1cb3",
+                        "type": "string"
+                    },
+                    "net_amount": {
+                        "example": "14925",
+                        "type": "string"
+                    },
+                    "status": {
+                        "example": "ACTIVE",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "TransferQuoteRequest": {
+                "properties": {
+                    "amount": {
+                        "example": "15000",
+                        "type": "string"
+                    },
+                    "currency": {
+                        "example": "NGN",
+                        "type": "string"
+                    },
+                    "recipient_id": {
+                        "example": "3bf24579-a35a-4ba9-a936-5df9c1d809f9",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "TransferQuoteResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/TransferQuote"
+                    }
+                },
+                "type": "object"
+            },
+            "TransferResponse": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/Transfer"
+                    }
+                },
+                "type": "object"
+            },
+            "USDBankFee": {
+                "properties": {
+                    "deposit_fee_percentage": {
+                        "example": "0",
+                        "type": "string"
+                    },
+                    "withdrawal_fee_percentage": {
+                        "example": "0.4",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "WebhookEvent": {
+                "properties": {
+                    "created_at": {
+                        "example": "2026-06-16T03:00:00Z",
+                        "type": "string"
+                    },
+                    "id": {
+                        "example": "d723cab9-1ad4-4d4d-821f-6704d834d575",
+                        "type": "string"
+                    },
+                    "status": {
+                        "example": "DELIVERED",
+                        "type": "string"
+                    },
+                    "type": {
+                        "example": "deposit.confirmed",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "WebhookEventListResponse": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/WebhookEvent"
+                        },
+                        "type": "array"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    }
+}

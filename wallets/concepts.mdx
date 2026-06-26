@@ -1,0 +1,63 @@
+---
+title: "Core concepts"
+description: "The building blocks of Wallets as a Service."
+---
+
+A handful of concepts cover almost everything you'll do with WAAS: you create **deposit addresses** to receive stablecoins, confirmed deposits credit your **merchant USD balance**, and you pay out with a **quote** followed by a **transfer** to a **whitelisted recipient**.
+
+## Deposit address
+
+A **deposit address** is an on-chain address you create to receive stablecoins on a supported **chain** (e.g. `BASE`). Each address has a stable `id` — store it as your reference. Yara manages the underlying keys; you never handle private keys.
+
+Share the `address` with whoever is paying you, or display it in your app.
+
+<Warning>
+  An address is tied to its **chain**. Sending funds on a different network can result in lost funds. Always show the chain alongside the address.
+</Warning>
+
+## Deposit
+
+A **deposit** is an incoming stablecoin transfer to one of your addresses. Yara watches the chain, waits for confirmations, and records the deposit. Once `CONFIRMED`, the USD value is credited to your merchant balance and a `deposit.confirmed` [webhook](/wallets/guides/webhooks) fires.
+
+## Merchant USD balance
+
+Confirmed deposits roll up into a single **merchant USD balance** — your spendable ledger balance. It has three parts:
+
+| Field | Meaning |
+| --- | --- |
+| `available` | Spendable now. |
+| `reserved` | Held against in-flight transfers. |
+| `pending_deposits` | Deposits seen but not yet confirmed — **not** spendable yet. |
+
+## Whitelisted recipient
+
+A **recipient** is a payout destination you approve in the [dashboard](https://dashboard.yara.cash) before sending funds — a bank account or a crypto address. You reference it by `recipient_id` when quoting a transfer. Funds can only ever leave to whitelisted recipients. See [Whitelist an address](/wallets/guides/whitelist-an-address).
+
+## Quote
+
+A **quote** prices a payout to a recipient. You send an `amount`, a `currency` (e.g. `NGN`), and a `recipient_id`; you get back the gross amount, fee, net amount, the USD that will be debited, the destination rail, and an `expires_at`. Quotes are short-lived — initiate the transfer before it expires.
+
+## Transfer
+
+A **transfer** is the payout itself. You create it from a valid `quote_id`; Yara reserves the funds and processes it asynchronously. Track its `status` (e.g. `RESERVED` → completed) via [webhooks](/wallets/guides/webhooks) or by fetching the transfer.
+
+## How they fit together
+
+<Steps>
+  <Step title="Create an address">
+    Provision a deposit address on a supported chain.
+  </Step>
+  <Step title="Receive a deposit">
+    Stablecoins arrive, confirm, and credit your merchant USD balance.
+  </Step>
+  <Step title="Whitelist a recipient">
+    Approve the payout destination in the dashboard.
+  </Step>
+  <Step title="Quote, then transfer">
+    Quote the payout, then initiate the transfer from the quote.
+  </Step>
+</Steps>
+
+<Card title="Next: create an address" icon="arrow-right" href="/wallets/guides/create-an-address" horizontal>
+  Put these concepts to work.
+</Card>

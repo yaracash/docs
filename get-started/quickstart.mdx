@@ -1,0 +1,102 @@
+---
+title: "Quickstart"
+description: "Create a deposit address, receive a stablecoin deposit, and pay out."
+---
+
+This guide takes you end to end: create a deposit address, receive a stablecoin deposit into your merchant USD balance, then quote and initiate a payout to a whitelisted recipient.
+
+## Prerequisites
+
+- A Yara account. [Sign in to the dashboard](https://dashboard.yara.cash) to create one.
+- An API key. See [Authentication](/get-started/authentication).
+
+## Get started
+
+<Steps>
+  <Step title="Get your API key">
+    In the [dashboard](https://dashboard.yara.cash), open **API keys** and generate a key. Copy it somewhere safe — the full key is shown only once.
+
+    ```bash
+    export YARA_API_KEY="your-secret-key"
+    ```
+  </Step>
+  <Step title="Create a deposit address">
+    Create a receive address on a supported chain. Store the returned `id` — it's the stable identifier for the address.
+
+    ```bash
+    curl https://api.yara.cash/v1/addresses \
+      --request POST \
+      --header "X-API-Key: $YARA_API_KEY" \
+      --header "X-Idempotency-Key: $(uuidgen)" \
+      --header "Content-Type: application/json" \
+      --data '{ "chain": "BASE" }'
+    ```
+
+    Share the returned `address` with whoever is funding it.
+  </Step>
+  <Step title="Receive a deposit">
+    When stablecoins (USDC/USDT) arrive and confirm, Yara credits your **merchant USD balance** and sends a `deposit.confirmed` [webhook](/wallets/guides/webhooks). Check your balance any time:
+
+    ```bash
+    curl https://api.yara.cash/v1/balance \
+      --header "X-API-Key: $YARA_API_KEY"
+    ```
+
+    ```json
+    {
+      "data": {
+        "available": "100.000000",
+        "reserved": "0.000000",
+        "pending_deposits": "0.000000",
+        "currency": "USD"
+      }
+    }
+    ```
+  </Step>
+  <Step title="Quote a payout">
+    To pay out, first quote a transfer to a [whitelisted recipient](/wallets/guides/whitelist-an-address). The quote locks in the rate and fee.
+
+    ```bash
+    curl https://api.yara.cash/v1/transfers/quotes \
+      --request POST \
+      --header "X-API-Key: $YARA_API_KEY" \
+      --header "X-Idempotency-Key: $(uuidgen)" \
+      --header "Content-Type: application/json" \
+      --data '{
+        "recipient_id": "3bf24579-a35a-4ba9-a936-5df9c1d809f9",
+        "amount": "15000",
+        "currency": "NGN"
+      }'
+    ```
+  </Step>
+  <Step title="Initiate the transfer">
+    Use the `quote_id` from the previous step to initiate the payout.
+
+    ```bash
+    curl https://api.yara.cash/v1/transfers \
+      --request POST \
+      --header "X-API-Key: $YARA_API_KEY" \
+      --header "X-Idempotency-Key: $(uuidgen)" \
+      --header "Content-Type: application/json" \
+      --data '{
+        "quote_id": "0e0f7b9c-f47b-4f42-b56e-991b8f7a1cb3",
+        "reference": "merchant-transfer-001"
+      }'
+    ```
+  </Step>
+</Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Core concepts" icon="diagram-project" href="/wallets/concepts">
+    How addresses, balance, and transfers fit together.
+  </Card>
+  <Card title="API reference" icon="code" href="/wallets/api-reference/overview">
+    Every endpoint, with a "Try it" console.
+  </Card>
+</CardGroup>
+
+<Tip>
+  Need a hand? Email [support@yara.cash](mailto:support@yara.cash).
+</Tip>

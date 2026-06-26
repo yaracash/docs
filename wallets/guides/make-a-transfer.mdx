@@ -1,0 +1,103 @@
+---
+title: "Make a transfer"
+description: "Quote a payout and initiate a transfer to a whitelisted recipient."
+---
+
+A payout is a two-step flow: **quote** the transfer to lock in the rate and fee, then **initiate** the transfer from that quote. Funds only ever move to a [whitelisted recipient](/wallets/guides/whitelist-an-address).
+
+## Before you start
+
+- The recipient must be **whitelisted** and **Active**. You'll need its `recipient_id`.
+- Your merchant USD balance must have enough `available` funds to cover the debit.
+
+## Step 1 — Quote the transfer
+
+Send the `amount`, the `currency`, and the `recipient_id`. The quote returns the cost breakdown and an expiry.
+
+```bash
+curl https://api.yara.cash/v1/transfers/quotes \
+  --request POST \
+  --header "X-API-Key: $YARA_API_KEY" \
+  --header "X-Idempotency-Key: $(uuidgen)" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "recipient_id": "3bf24579-a35a-4ba9-a936-5df9c1d809f9",
+    "amount": "15000",
+    "currency": "NGN"
+  }'
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "0e0f7b9c-f47b-4f42-b56e-991b8f7a1cb3",
+    "gross_amount": "15000",
+    "fee_amount": "75",
+    "net_amount": "14925",
+    "debit_amount_usd": "10.050000",
+    "destination_rail": "BANK_ACCOUNT",
+    "expires_at": "2026-06-16T03:05:00Z",
+    "status": "ACTIVE"
+  }
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `gross_amount` | The amount in the recipient's currency before fees. |
+| `fee_amount` | The fee, in the recipient's currency. |
+| `net_amount` | What the recipient receives. |
+| `debit_amount_usd` | What will be debited from your USD balance. |
+| `destination_rail` | How it settles, e.g. `BANK_ACCOUNT`. |
+| `expires_at` | Initiate the transfer before this time. |
+
+## Step 2 — Initiate the transfer
+
+Create the transfer from the `quote_id`. Add your own `reference` to reconcile it later.
+
+```bash
+curl https://api.yara.cash/v1/transfers \
+  --request POST \
+  --header "X-API-Key: $YARA_API_KEY" \
+  --header "X-Idempotency-Key: $(uuidgen)" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "quote_id": "0e0f7b9c-f47b-4f42-b56e-991b8f7a1cb3",
+    "reference": "merchant-transfer-001"
+  }'
+```
+
+### Response
+
+The transfer is accepted (`202`) and processed asynchronously.
+
+```json
+{
+  "data": {
+    "id": "76179a66-8695-47fd-bca4-310eaa816077",
+    "quote_id": "0e0f7b9c-f47b-4f42-b56e-991b8f7a1cb3",
+    "reference": "merchant-transfer-001",
+    "status": "RESERVED",
+    "created_at": "2026-06-16T03:00:00Z"
+  }
+}
+```
+
+## Track the transfer
+
+Listen for [webhooks](/wallets/guides/webhooks), or fetch the transfer by its `id`:
+
+```bash
+curl https://api.yara.cash/v1/transfers/76179a66-8695-47fd-bca4-310eaa816077 \
+  --header "X-API-Key: $YARA_API_KEY"
+```
+
+<Warning>
+  Always send an `X-Idempotency-Key`. If a request times out, retry with the **same** key — Yara returns the original quote or transfer instead of charging twice.
+</Warning>
+
+<Tip>
+  Quotes expire. If you get a conflict or an expired-quote error when initiating, request a fresh quote and try again.
+</Tip>

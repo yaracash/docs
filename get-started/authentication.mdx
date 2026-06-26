@@ -1,0 +1,82 @@
+---
+title: "Authentication"
+description: "How to authenticate your requests to the Yara API."
+---
+
+Yara uses API keys to authenticate requests. You generate and manage them in the [dashboard](https://dashboard.yara.cash) under **API keys**.
+
+## API keys
+
+Pass your secret key in the `X-API-Key` header on every request.
+
+```bash
+curl https://api.yara.cash/v1/addresses \
+  --header "X-API-Key: $YARA_API_KEY"
+```
+
+You can also send it as an `Authorization` header if you prefer:
+
+```bash
+curl https://api.yara.cash/v1/addresses \
+  --header "Authorization: ApiKey $YARA_API_KEY"
+```
+
+Keys are scoped to an [environment](/get-started/environments) — sandbox or production — so you can tell test traffic from live traffic.
+
+<Warning>
+  Your secret key grants full access to your account. Keep it server-side, never commit it to source control, and never share it in places like Slack or client-side code. The full key is shown **only once** at creation — if you lose it, revoke it and generate a new one.
+</Warning>
+
+A missing or invalid key returns `401 Unauthorized`:
+
+```json
+{
+  "error": {
+    "code": "unauthorized",
+    "message": "missing or invalid API key"
+  }
+}
+```
+
+## Idempotency
+
+Write requests — creating an address, quoting, or initiating a transfer — require an `X-Idempotency-Key` header. Send a unique value (a UUID works well) for each distinct operation.
+
+```bash
+curl https://api.yara.cash/v1/transfers \
+  --request POST \
+  --header "X-API-Key: $YARA_API_KEY" \
+  --header "X-Idempotency-Key: 1f7b2c9a-3d4e-4f5a-9b6c-7d8e9f0a1b2c" \
+  --header "Content-Type: application/json" \
+  --data '{ "quote_id": "0e0f7b9c-f47b-4f42-b56e-991b8f7a1cb3" }'
+```
+
+If a request is retried with the same key — after a network error or timeout — Yara returns the original result instead of performing the operation twice. This makes money movement safe to retry.
+
+<Tip>
+  Generate a fresh idempotency key per operation and reuse it only when retrying that same operation.
+</Tip>
+
+## Errors
+
+Every error response has the same shape: an `error` object with a `code` and a `message`.
+
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "invalid JSON body"
+  }
+}
+```
+
+| Code | Meaning |
+| --- | --- |
+| `200` / `201` / `202` | Success |
+| `400` | The request was malformed |
+| `401` | Missing or invalid API key |
+| `404` | The resource doesn't exist |
+| `409` | Conflict — e.g. a duplicate idempotency key with a different body |
+| `503` | A downstream service is temporarily unavailable |
+
+Next, learn how [sandbox and production environments](/get-started/environments) differ.

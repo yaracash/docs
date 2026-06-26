@@ -1,34 +1,177 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
-  "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
-  },
+  "name": "Yara",
+  "description": "Stablecoin infrastructure for businesses building in Africa.",
   "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#665656",
+    "light": "#A1908C",
+    "dark": "#211E1D"
+  },
+  "fonts": {
+    "family": "Instrument Sans"
+  },
   "navigation": {
-    "pages": [
+    "tabs": [
       {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
+        "tab": "Get started",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "index",
+              "get-started/what-is-yara"
+            ]
+          },
+          {
+            "group": "Build",
+            "pages": [
+              "get-started/quickstart",
+              "get-started/authentication",
+              "get-started/environments"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Wallets",
+        "groups": [
+          {
+            "group": "Wallets as a Service",
+            "pages": [
+              "wallets/overview",
+              "wallets/concepts"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "wallets/guides/create-an-address",
+              "wallets/guides/receive-funds",
+              "wallets/guides/whitelist-an-address",
+              "wallets/guides/make-a-transfer",
+              "wallets/guides/webhooks"
+            ]
+          },
+          {
+            "group": "API reference",
+            "pages": [
+              "wallets/api-reference/overview"
+            ]
+          },
+          {
+            "group": "Addresses",
+            "openapi": "openapi.json",
+            "pages": [
+              "POST /v1/addresses",
+              "GET /v1/addresses",
+              "GET /v1/addresses/{id}"
+            ]
+          },
+          {
+            "group": "Balance",
+            "openapi": "openapi.json",
+            "pages": [
+              "GET /v1/balance"
+            ]
+          },
+          {
+            "group": "Deposits",
+            "openapi": "openapi.json",
+            "pages": [
+              "GET /v1/deposits",
+              "GET /v1/deposits/{id}"
+            ]
+          },
+          {
+            "group": "Transfers",
+            "openapi": "openapi.json",
+            "pages": [
+              "POST /v1/transfers/quotes",
+              "POST /v1/transfers",
+              "GET /v1/transfers",
+              "GET /v1/transfers/{id}"
+            ]
+          },
+          {
+            "group": "Transactions",
+            "openapi": "openapi.json",
+            "pages": [
+              "GET /v1/transactions"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "openapi": "openapi.json",
+            "pages": [
+              "GET /v1/webhook-events"
+            ]
+          },
+          {
+            "group": "Reference data",
+            "openapi": "openapi.json",
+            "pages": [
+              "GET /v1/chains",
+              "GET /v1/rates",
+              "GET /v1/fees"
+            ]
+          },
+          {
+            "group": "Status",
+            "openapi": "openapi.json",
+            "pages": [
+              "GET /health",
+              "GET /ready"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Ramps",
+        "groups": [
+          {
+            "group": "Ramps",
+            "pages": [
+              "ramps/overview"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "USD Virtual Accounts",
+        "groups": [
+          {
+            "group": "USD Virtual Accounts",
+            "pages": [
+              "virtual-accounts/overview"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Liquidity",
+        "groups": [
+          {
+            "group": "Yara Liquidity",
+            "pages": [
+              "liquidity/overview"
+            ]
+          }
         ]
       }
     ],
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "Dashboard",
+          "href": "https://dashboard.yara.cash",
+          "icon": "grid-2"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Support",
+          "href": "mailto:support@yara.cash",
+          "icon": "envelope"
         }
       ]
     }
@@ -41,13 +184,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@yara.cash"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "href": "https://dashboard.yara.cash"
     }
   },
   "contextual": {
@@ -56,17 +199,13 @@
       "view",
       "chatgpt",
       "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
+      "mcp"
     ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/yara",
+      "linkedin": "https://linkedin.com/company/yara"
     }
   }
 }
